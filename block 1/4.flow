@@ -1,0 +1,26 @@
+import material/material;
+
+inds(a : [int], m : int) -> [Pair<int, int>]{
+	foldi(a, [], \i, pairs, n -> foldi(tailFrom(a, i + 1), pairs, \j, pair, k ->
+		if (n + k == m) concat(pair, [Pair(i, j + i + 1)]) else pair));
+}
+
+
+treeInds(a : [int], m : int) -> [Pair<int, int>]{
+	tree = foldi(a, makeTree(), \i, t, val -> 
+		setTree(t, val, arrayPush(getTreeArrayValue(t, val), i)));
+	foldi(a, [], \i, pairs, n -> foldi(getTreeArrayValue(tree, m - n), pairs, 
+		\j, pair, x -> if (x > i) concat(pair, [Pair(i, x)]) else pair));
+}
+
+
+main(){
+	a : [int] = [1, 2, 3, 5, 5, 7, 8, 11, 13, 17, 19];
+	println(inds(a, 8));
+	b = concat(a, [0]);
+	println(inds(b, 8));
+	println(inds(b, 0));
+	println(treeInds(a, 5));
+	println(treeInds(b, 8));
+	println(treeInds(b, 0));
+}

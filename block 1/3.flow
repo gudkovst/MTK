@@ -1,0 +1,48 @@
+import material/material;
+
+recFib (n : int) -> [int]{
+	if (n == 0)
+		[0]
+	else if (n == 1)
+		concat(recFib(n - 1), [n])
+	else{
+		a = recFib(n - 1);
+		concat(a, [a[n-2] + a[n-1]]);
+	}
+}
+
+fib_t(n : int, arr : [int])->[int]{
+	if (n <= 1)
+		arr
+	else
+		fib_t(n - 1, concat(arr, [arr[length(arr) - 1] + arr[length(arr) - 2]]))
+}
+
+tailRecFib(n : int) -> [int]{
+	if (n == 0)
+		[0]
+	else if (n == 1)
+		[0, 1]
+	else
+		fib_t(n, [0, 1])
+}
+
+refFib(n : int) -> [int]{
+	if (n == 0)
+		[0]
+	else if (n == 1)
+		[0, 1]
+	else{
+		a = ref refFib(n - 1);
+		refArrayPush(a, ^a[n - 1] + ^a[n - 2]);
+		^a;
+	}
+}
+
+
+
+main(){
+	println(recFib(7));
+	println(tailRecFib(7));
+	println(refFib(7));
+}
