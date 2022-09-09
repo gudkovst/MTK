@@ -3,7 +3,7 @@ import material/material;
 main(){
 
 	arrNum : [int] = [1, 2, 3];
-	arrStr = map(arrNum, \i -> i2s(i));
+	arrStr = map(arrNum, \x -> i2s(x));
 
 	println(arrStr);
 }
