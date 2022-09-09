@@ -6,4 +6,5 @@ main(){
 	arrStr = map(arrNum, \x -> i2s(x));
 
 	println(arrStr);
+	quit(0);
 }
