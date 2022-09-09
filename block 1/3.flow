@@ -45,4 +45,5 @@ main(){
 	println(recFib(7));
 	println(tailRecFib(7));
 	println(refFib(7));
+	quit(0);
 }
