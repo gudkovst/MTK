@@ -23,4 +23,5 @@ main(){
 	println(treeInds(a, 5));
 	println(treeInds(b, 8));
 	println(treeInds(b, 0));
+	quit(0);
 }
