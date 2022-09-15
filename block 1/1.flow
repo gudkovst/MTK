@@ -1,10 +1,12 @@
 import material/material;
+import sys/system;
+import string;
 
 main(){
-
-	arrNum : [int] = [1, 2, 3];
-	arrStr = map(arrNum, \x -> i2s(x));
-
+	str = readBytes(4);
+	arrNum = s2a2(str, " ", fromDigit);
+	println(arrNum);
+	arrStr = map(arrNum, \i -> i2s(i));
 	println(arrStr);
 	quit(0);
 }
