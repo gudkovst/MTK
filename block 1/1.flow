@@ -3,6 +3,8 @@ import sys/system;
 import string;
 
 main(){
+	s = getFileContent("test.txt");
+	println(map(s2a2(s, " ", fromDigit), i2s));
 	str = readBytes(4);
 	arrNum = s2a2(str, " ", fromDigit);
 	println(arrNum);
