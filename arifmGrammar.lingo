@@ -1,0 +1,8 @@
+
+
+exp = product '+' ws exp | product '-' ws exp | product;
+product = int '*' ws product | int '/' ws product | int;
+int = '-'? digit+ ws;
+digit = '0'-'9';
+ws = s*;
+s = " " | "\t" | "\n";
