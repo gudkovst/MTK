@@ -1,8 +1,12 @@
 
+term =  "(" ws term:t "+" ws term:p ")" ws {Sum(:t, :p)} |
+		"(" ws term:t "-" ws term:p ")" ws {Sub(:t, :p)} |
+		"(" ws term:t "*" ws term:p ")" ws {Mul(:t, :p)} |
+		"(" ws term:t "/" ws term:p ")" ws {Div(:t, :p)} |
+		"(" ws term:t ")" ws {:t} | const | variable;
 
-exp = product '+' ws exp | product '-' ws exp | product;
-product = int '*' ws product | int '/' ws product | int;
-int = '-'? digit+ ws;
+variable = ('a' - 'z' digit*)$v ws {Var($v)}; 
+const = ("-"? digit+)$c ws {Const(s2i($c))};
 digit = '0'-'9';
 ws = s*;
 s = " " | "\t" | "\n";
