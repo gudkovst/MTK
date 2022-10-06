@@ -1,0 +1,270 @@
+import definition;
+
+export {
+	simpleTerm(t : TERM) -> TERM;
+	differ(t : TERM, v : Var) -> TERM;
+}
+
+differ(t : TERM, v : Var) -> TERM {
+	switch(t){
+		Const(r) : Const(0);
+		Var(r) : if (t == v) Const(1) else Const(0);
+		Sum(p, q) : Sum(differ(p, v), differ(q, v));
+		Sub(p, q) : Sub(differ(p, v), differ(q, v));
+		Mul(p, q) : Sum(Mul(differ(p, v), q), Mul(p, differ(q, v)));
+		Div(p, q) : Div(Sub(Mul(differ(p, v), q), Mul(p, differ(q, v))), Pow(q, Const(2)));
+		Ln(p) : Div(differ(p, v), p);
+		Pow(p, q) : {
+			if (simpleTerm(differ(p, v)) == Const(0) && simpleTerm(differ(q, v)) == Const(0))
+				Const(0)
+			else if (simpleTerm(differ(p, v)) == Const(0))
+				Mul(Pow(p, q), Ln(p))
+			else if (simpleTerm(differ(q, v)) == Const(0))
+				Mul(q, Pow(p, changeExp(q, -1)))
+			else Mul(t, Sum(Mul(differ(q, v), Ln(p)), Mul(q, differ(Ln(p), v))));
+		}
+		Dif(p, u) : differ(differ(p, u), v);
+	}
+}
+
+simpleTerm(t : TERM) -> TERM {
+	switch(t){
+		Sum(p, q) : {
+			if (simpleTerm(p) == Const(0)) 
+				simpleTerm(q)
+			else if (simpleTerm(q) == Const(0)) 
+				simpleTerm(p)
+			else switch(q){
+				Const(r) : {
+					if (r < 0) simpleTerm(Sub(simpleTerm(p), Const(-r)))
+					else Sum(simpleTerm(p), simpleTerm(q)); 
+				};
+				default : Sum(simpleTerm(p), simpleTerm(q));
+			};
+		};
+		Sub(p, q) : {
+			if (simpleTerm(p) == simpleTerm(q)) 
+				Const(0)
+			else if (simpleTerm(q) == Const(0)) 
+				simpleTerm(p)
+			else if (simpleTerm(p) == Const(0))
+				simpleTerm(Mul(Const(-1), simpleTerm(q)))
+			else Sub(simpleTerm(p), simpleTerm(q));
+		};
+		Mul(p, q) : {
+			if (simpleTerm(p) == Const(0) || simpleTerm(q) == Const(0)) 
+				Const(0)
+			else if (simpleTerm(p) == Const(1)) 
+				simpleTerm(q)
+			else if (simpleTerm(q) == Const(1)) 
+				simpleTerm(p)
+			else if (simpleTerm(p) == Const(-1)) {
+				switch(simpleTerm(q)){
+					Const(r) : Const(-r);
+					default : simpleMul(Const(-1), simpleTerm(q));
+				}
+			} 
+			else if (simpleTerm(q) == Const(-1)){
+				switch(simpleTerm(p)){
+					Const(r) : Const(-r);
+					default : simpleMul(Const(-1), simpleTerm(p));
+				}
+			} 
+			else if (simpleTerm(p) == simpleTerm(q))
+				Pow(simpleTerm(p), Const(2))
+			else simpleMul(simpleTerm(p), simpleTerm(q));
+		};
+		Div(p, q) : {
+			if (simpleTerm(p) == Const(0) || simpleTerm(q) == Const(0)) 
+				Const(0)
+			else if (simpleTerm(q) == Const(1))
+				simpleTerm(p)
+			else if (simpleTerm(q) == Const(-1))
+				simpleTerm(Mul(Const(-1), simpleTerm(p)))
+			else if (simpleTerm(p) == simpleTerm(q))
+				Const(1)
+			else simpleDiv(simpleTerm(p), simpleTerm(q));
+		};
+		Pow(p, q) : {
+			if (simpleTerm(q) == Const(0)) 
+				Const(1)
+			else if (simpleTerm(p) == Const(0))
+				Const(0)
+			else if (simpleTerm(p) == Const(1))
+				Const(1)
+			else if (simpleTerm(q) == Const(1))
+				simpleTerm(p)
+			else switch(simpleTerm(p)){
+				Pow(bp, ep) : simpleTerm(Pow(simpleTerm(bp), simpleTerm(Mul(simpleTerm(ep), simpleTerm(q)))));
+				Mul(r, s) : simpleTerm(Mul(Pow(r, q), Pow(s, q)));
+				Div(r, s) : simpleTerm(Div(Pow(r, q), Pow(s, q)));
+				default : Pow(simpleTerm(p), simpleTerm(q));
+			};
+		};
+		Ln(p) : {
+			if (simpleTerm(p) == Const(0)){
+				println("error: ln(0)");
+				Const(0)
+			}
+			else if (simpleTerm(p) == Const(1))
+				Const(0)
+			else switch(p){
+				Pow(bp, ep) : simpleTerm(Mul(ep, simpleTerm(Ln(bp))));
+				default : Ln(simpleTerm(p));
+			}
+		}
+		Dif(p, v) : simpleTerm(differ(p, v));
+		default : t;
+	}
+}
+
+simpleMul(p : TERM, q : TERM) -> TERM {
+	switch(p){
+		Pow(bp, ep) : {
+			if (simpleTerm(bp) == q) simpleTerm(Pow(q, changeExp(simpleTerm(ep), 1)))
+			else switch(q){
+				Pow(bq, exq) : {
+					if (simpleTerm(bp) == simpleTerm(bq))
+						Pow(simpleTerm(bp), Sum(simpleTerm(ep), simpleTerm(exq)))
+					else Mul(p, q);
+				};
+				Mul(r, s) : {
+					if (simpleTerm(r) == simpleTerm(bp)) Mul(Pow(simpleTerm(r), changeExp(ep, 1)), simpleTerm(s))
+					else if (simpleTerm(s) == simpleTerm(bp)) Mul(simpleTerm(r), Pow(simpleTerm(s), changeExp(ep, 1)))
+					else Mul(p, q);
+				};
+				Const(r) : {
+					if (q == simpleTerm(bp)) Pow(q, changeExp(ep, 1))
+					else Mul(p, q);
+				};
+				Var(r) : {
+					if (q == simpleTerm(bp)) Pow(q, changeExp(ep, 1))
+					else Mul(p, q);
+				};
+				Div(r, s) : {
+					if (simpleTerm(r) == simpleTerm(bp)) 
+						Div(Pow(simpleTerm(r), changeExp(ep, 1)), simpleTerm(s))
+					else if (simpleTerm(s) == simpleTerm(bp)) 
+						Mul(simpleTerm(r), simpleTerm(Pow(simpleTerm(s), changeExp(ep, -1))))
+					else Div(simpleMul(p, simpleTerm(r)), simpleTerm(s));
+				};
+				default : Mul(p, q);
+			}
+		};
+		Mul(r, s) : {
+			switch(q){
+				Pow(bq, exq) : {
+					if (simpleTerm(r) == simpleTerm(bq)) 
+						Mul(simpleTerm(s), Pow(simpleTerm(r), changeExp(exq, 1)))
+					else if (simpleTerm(s) == simpleTerm(bq)) 
+						Mul(simpleTerm(r), Pow(simpleTerm(r), changeExp(exq, 1)))
+					else Mul(p, q);
+				};
+				Div(u, v) : Div(simpleMul(p, simpleTerm(u)), simpleTerm(v));
+				default : Mul(p, q);
+			}
+		};
+		Const(r) : {
+			switch(q){
+				Pow(bq, exq) : {
+					if (p == simpleTerm(bq)) Pow(p, changeExp(exq, 1))
+					else Mul(p, q);
+				}
+				Div(u, v) : Div(simpleMul(p, simpleTerm(u)), simpleTerm(v));
+				default : Mul(p, q);
+			}
+		};
+		Var(r) : {
+			switch(q){
+				Pow(bq, exq) : {
+					if (p == simpleTerm(bq)) Pow(p, changeExp(exq, 1))
+					else Mul(p, q);
+				}
+				Div(u, v) : Div(Mul(p, simpleTerm(u)), simpleTerm(v));
+				default : Mul(p, q);
+			}
+		};
+		Div(u, v) : Div(simpleMul(simpleTerm(u), q), simpleTerm(v));
+		default : Mul(p, q);
+	}
+}
+
+simpleDiv(p : TERM, q : TERM) -> TERM {
+	switch(p){
+		Pow(bp, ep) : {
+			switch(q){
+				Pow(bq, exq) : {
+					if (simpleTerm(bp) == simpleTerm(bq)) 
+						simpleTerm(Pow(simpleTerm(bp), simpleTerm(Sub(simpleTerm(ep), simpleTerm(exq)))))
+					else Div(p, q);
+				};
+				Mul(r, s) : {
+					if (simpleTerm(r) == simpleTerm(bp)) 
+						simpleDiv(simpleTerm(Pow(simpleTerm(bp), changeExp(ep, -1))), simpleTerm(s))
+					else if (simpleTerm(s) == simpleTerm(bp))
+						simpleDiv(simpleTerm(Pow(simpleTerm(bp), changeExp(ep, -1))), simpleTerm(r))
+					else Div(p, q);
+				};
+				Div(r, s) : simpleDiv(simpleMul(p, simpleTerm(s)), simpleTerm(r));
+				default : {
+					if (simpleTerm(bp) == q) simpleTerm(Pow(q, changeExp(simpleTerm(ep), -1)))
+					else Div(p, q);
+				};
+			}
+		};
+		Mul(r, s) : {
+			switch(q){
+				Pow(bq, exq) : {
+					if (simpleTerm(r) == simpleTerm(bq))
+						simpleDiv(simpleTerm(s), simpleTerm(Pow(simpleTerm(r), changeExp(simpleTerm(exq), -1))))
+					else if (simpleTerm(s) == simpleTerm(bq))
+						simpleDiv(simpleTerm(r), simpleTerm(Pow(simpleTerm(s), changeExp(simpleTerm(exq), -1))))
+					else Div(p, q);
+				};
+				Mul(u, v) : {
+					if (simpleTerm(r) == simpleTerm(u))
+						simpleDiv(simpleTerm(s), simpleTerm(v))
+					else if (simpleTerm(r) == simpleTerm(v))
+						simpleDiv(simpleTerm(s), simpleTerm(u))
+					else if (simpleTerm(s) == simpleTerm(u))
+						simpleDiv(simpleTerm(r), simpleTerm(v))
+					else if (simpleTerm(s) == simpleTerm(v))
+						simpleDiv(simpleTerm(r), simpleTerm(u))
+					else Div(p, q);
+				};
+				Div(u, v) : simpleDiv(simpleMul(simpleMul(simpleTerm(r), simpleTerm(s)), simpleTerm(v)), simpleTerm(u));
+				default : {
+					if (simpleTerm(r) == q) simpleTerm(s)
+					else if (simpleTerm(s) == q) simpleTerm(r)
+					else Div(p, q);
+				};
+			}
+		};
+		Div(r, s) : simpleDiv(simpleTerm(r), simpleMul(simpleTerm(s), q));
+		default : {
+			switch(q){
+				Pow(bq, exq) : {
+					if (simpleTerm(bq) == p)
+						Div(Const(1), simpleTerm(Pow(p, changeExp(exq, -1))))
+					else Div(p, q);
+				};
+				Mul(r, s) : {
+					if (simpleTerm(s) == p)
+						simpleDiv(Const(1), simpleTerm(r))
+					else if (simpleTerm(r) == p)
+						simpleDiv(Const(1), simpleTerm(s))
+					else Div(p, q);
+				};
+				Div(r, s) : simpleDiv(simpleMul(p, simpleTerm(s)), simpleTerm(r));
+				default : Div(p, q);
+			}
+		};
+	}
+}
+
+changeExp(exp : TERM, delta : int) -> TERM {
+	switch(simpleTerm(exp)){
+		Const(r) : Const(r + delta);
+		default : Sum(simpleTerm(exp), Const(delta)); 
+	}
+}

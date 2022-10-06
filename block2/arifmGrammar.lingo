@@ -1,8 +1,11 @@
 
-term =  "(" ws term:t "+" ws term:p ")" ws {Sum(:t, :p)} |
+term =  "(" ws "ln(" ws term:t ")" ws ")" ws {Ln(:t)} |
+		"(" ws "d[" ws term:t "]" ws "/" ws "d" variable$v ")" ws {Dif(:t, Var($v))} |
+		"(" ws term:t "+" ws term:p ")" ws {Sum(:t, :p)} |
 		"(" ws term:t "-" ws term:p ")" ws {Sub(:t, :p)} |
 		"(" ws term:t "*" ws term:p ")" ws {Mul(:t, :p)} |
 		"(" ws term:t "/" ws term:p ")" ws {Div(:t, :p)} |
+		"(" ws term:t "^" ws term:p ")" ws {Pow(:t, :p)} |
 		"(" ws term:t ")" ws {:t} | const | variable;
 
 variable = ('a' - 'z' digit*)$v ws {Var($v)}; 

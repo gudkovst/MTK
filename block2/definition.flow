@@ -1,0 +1,40 @@
+import lingo/pegcode/driver;
+import material/material;
+
+export {
+
+TERM ::= Sum, Sub, Mul, Div, Pow, Const, Var, Dif, Ln;
+Sum : (p : TERM, q : TERM);
+Sub : (p : TERM, q : TERM);
+Mul : (p : TERM, q : TERM);
+Div : (p : TERM, q : TERM);
+Pow : (p : TERM, q : TERM);
+Const : (p : int);
+Var : (p : string);
+Dif : (t : TERM, v : Var);
+Ln : (t : TERM);
+
+	s2t(term : string) -> TERM;
+	t2s(t : TERM) -> string;
+}
+
+s2t(term : string) -> TERM {
+	lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
+	parsic(onlyOnce(lingoGrammarOp, \ -> {
+			   compilePegGrammar("#include arifmGrammar.lingo");
+		   }), term, defaultPegActions);
+}
+
+t2s(t : TERM) -> string {
+	switch (t) {
+		Sum(p, q) : "(" + t2s(p) + " + " + t2s(q) + ")";
+		Sub(p, q) : "(" + t2s(p) + " - " + t2s(q) + ")";
+		Mul(p, q) : "(" + t2s(p) + " * " + t2s(q) + ")";
+		Div(p, q) : "(" + t2s(p) + " / " + t2s(q) + ")";
+		Pow(p, q) : "(" + t2s(p) + "^" + t2s(q) + ")"; 
+		Const(p) : if (p < 0) "(" + i2s(p) + ")" else i2s(p);
+		Var(p) : p;
+		Dif(p, v) : "(d[" + t2s(p) + "] / d" + t2s(v) + ")";
+		Ln(p) : "(ln(" + t2s(p) + ")"; 
+	}
+}

@@ -1,0 +1,60 @@
+import simplification;
+import definition;
+
+calc(t : TERM, vars) -> double {
+	switch(t){
+		Sum(p, q) : calc(p, vars) + calc(q, vars);
+		Sub(p, q) : calc(p, vars) - calc(q, vars);
+		Mul(p, q) : calc(p, vars) * calc(q, vars);
+		Div(p, q) : {
+			if (calc(q, vars) == 0.0) { println("Division by zero! Result can be wrong!"); 0.0;}
+			else calc(p, vars) / calc(q, vars);
+		}
+		Pow(p, q) : dpow(calc(p, vars), calc(q, vars));
+		Const(p) : i2d(p);
+		Var(p) : getTreeArrayValue(vars, p)[0];
+		Dif(p, v) : calc(differ(p, v), vars);
+		Ln(p) : log(calc(p, vars));
+	}
+}
+
+findVars(t : TERM, vars : Tree<string, [double]>) -> Tree<string, [double]> {
+	switch(t){
+		Var(p) : {
+			if (!containsKeyTree(vars, p)){
+				print(p + " = ");
+				val = calc(s2t(readUntil("\n")), makeTree());
+				setTree(vars, p, [val]);
+			}
+			else vars;
+		};
+		Const(p) : vars;
+		Sum(p, q) : { v = findVars(p, vars); findVars(q, v)};
+		Sub(p, q) : { v = findVars(p, vars); findVars(q, v)};
+		Mul(p, q) : { v = findVars(p, vars); findVars(q, v)};
+		Div(p, q) : { v = findVars(p, vars); findVars(q, v)};
+		Pow(p, q) : { v = findVars(p, vars); findVars(q, v)};
+		Ln(p) : findVars(p, vars);
+		Dif(p, v) : findVars(p, vars);
+	}
+}
+
+getVars() -> Tree<string, [double]> {
+	parameters = getAllUrlParametersArray();
+	println(parameters);
+	fold(parameters, makeTree(), \tree, parameter -> {
+			setTree(tree, parameter[0], [calc(s2t(parameter[1]), makeTree())])
+		}
+	);
+}
+
+main() {
+	term = s2t(getFileContent("test.txt"));
+	println(term);
+	println(t2s(term));
+	vars : Tree<string, [double]> = findVars(term, makeTree());
+	//vars : Tree<string, [double]> = getVars();
+	println(calc(term, vars));
+	println(t2s(simpleTerm(term)));
+	quit(0);
+}
