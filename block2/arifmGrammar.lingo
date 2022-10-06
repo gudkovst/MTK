@@ -1,5 +1,5 @@
 
-term =  "(" ws "ln(" ws term:t ")" ws ")" ws {Ln(:t)} |
+term =  	"(" ws "ln(" ws term:t ")" ws ")" ws {Ln(:t)} |
 		"(" ws "d[" ws term:t "]" ws "/" ws "d" variable$v ")" ws {Dif(:t, Var($v))} |
 		"(" ws term:t "+" ws term:p ")" ws {Sum(:t, :p)} |
 		"(" ws term:t "-" ws term:p ")" ws {Sub(:t, :p)} |
