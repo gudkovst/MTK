@@ -1,0 +1,6 @@
+VAR i :  INT;
+
+VAR n21:  INT;
+VAR l : INT ARRAY OF INT;
+{i := 5; n21:= 41;} U {UPD(l, 0, 11);}
+n21 < i?; 

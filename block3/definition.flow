@@ -1,0 +1,45 @@
+import lingo/pegcode/driver;
+import material/material;
+
+Prog : (defs : [Def], body : Body);
+
+Body ::= Assign, Test, Union, Iter;
+Assign : (v : Var, expr : Expr);
+Test : (p : Pred);
+Union : (b1 : Body, b2 : Body);
+Iter : (b : Body);
+Expr ::= Arifm, Pred, Const;
+
+Def : (v : Var, t : Type);
+Type ::= Int, Array;
+Int : ();
+Array : (ind : Type, val : Type);
+
+Arifm : (op1 : Operand, opr : Operator, op2 : Operand);
+APP : (op1 : Operand, op2 : Operand);
+UPD : (op1 : Operand, op2 : Operand, op3 : Operand);
+Pred : (op1 : Operand, opr : Operator, op2 : Operand);
+Operand ::= Const, Var;
+Operator : (op : string);
+
+Const : (p : int);
+Var : (p : string);
+
+s2p(prog : string) -> Prog {
+	lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
+	parsic(onlyOnce(lingoGrammarOp, \ -> {
+			   compilePegGrammar("#include nemo.lingo");
+		   }), prog, defaultPegActions);
+}
+
+/*p2s(prog : Prog) -> string {
+
+}*/
+
+main(){
+	str = getFileContent("nemo.txt");
+	println(str);
+	prog = s2p(str);
+	println(prog);
+	quit(0);
+}
