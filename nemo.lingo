@@ -1,0 +1,34 @@
+
+program = ws definition*:def ws body:b ws {Prog(:def, :b)};
+
+definition = ws "VAR" ws variable:v ws ":" ws type:t ws ";" ws {Def(:v, :t)};
+
+type = ws "INT" {Int()} ws | ws type:ind ws "ARRAY OF" ws type:t ws {Array(:ind, :t)};
+
+body = assignment | test | "{" ws body:b ws ";" ws "}" ws {:b} | 
+		"{" ws body:b1 ws "U" ws body:b2 ws "}" ws {Union(:b1, :b2)} | ws "{" ws body:b ws "}*" {Iter(:b)};
+
+assignment = ws variable:v ws ":=" ws expr:e ws ";" ws {Assign(:v, :e)};
+
+test = ws predicat:p ws "?" ws ";" ws {Test(:p)};
+
+expr = ws operand | arifmExpr | funcExpr ws;
+
+operand = ws const | variable ws;
+
+arifmExpr = operand:op1 operator:opr operand:op2 {Arifm(:op1, :opr, :op2)};
+
+funcExpr = ws ("APP(" operand:op1 ", " operand:op2 ");" ws) {APP(:op1, :op2)} | 
+			  ("UPD(" operand:op1 ", " operand:op2 ", " operand:op3 ");" ws) {UPD(:op1, :op2, :op3)};
+
+predicat = ws operand:op1 logicOperator:lop operand:op2 ws {Pred(:op1, :lop, :op2)};
+
+logicOperator = ws "=" | "<" | ">"| "<="| ">="| "!=" ws;
+
+operator = ws "+" | "-" | "*" | "/" ws;
+
+variable = ('a' - 'z' (('a' - 'z')* digit*)+)$v ws {Var($v)}; 
+const = ("-"? digit+)$c ws {Const(s2i($c))};
+digit = '0' - '9';
+ws = s*;
+s = " " | "\t" | "\n" | "\r";
