@@ -1,0 +1,44 @@
+import lingo/pegcode/driver;
+import material/material;
+
+export{
+
+VMProg : (defs : [Def], op : [Oper]);
+Oper ::= Assgn, If;
+Assgn : (m : Mark, v : Var, e : Expr, s : SetMark);
+If : (m : Mark, p : LogExpr, t : SetMark, f : SetMark);
+
+}
+
+Def : (v : Var, t : Type);
+Type ::= Int, Array;
+Int : ();
+Array : (ind : Type, val : Type);
+
+Mark : (m : int);
+SetMark : (marks : [Mark]);
+
+LogExpr ::= Pred, Not, Expr;
+Pred : (e1 : Expr, opr : string, e2 : Expr);
+Not : (p : Pred);
+Expr ::= Arifm, APP, UPD, Var, Const;
+Arifm : (e1 : Expr, opr : string, e2 : Expr);
+APP : (e1 : Expr, e2 : Expr);
+UPD : (e1 : Expr, e2 : Expr, e3 : Expr);
+Const : (p : int);
+Var : (p : string);
+
+s2p(prog : string) -> VMProg {
+	lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
+	parsic(onlyOnce(lingoGrammarOp, \ -> {
+			   compilePegGrammar("#include VMnemo.lingo");
+		   }), prog, defaultPegActions);
+}
+
+main(){
+	str = getFileContent("VMnemo.txt");
+	//println(str);
+	prog = s2p(str);
+	println(prog);
+	quit(0);
+}

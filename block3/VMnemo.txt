@@ -1,0 +1,22 @@
+VAR n: INT; VAR x: INT; VAR y: INT;
+
+0: n := 12 goto {1}
+
+1: x := 0 goto {2}
+
+2: y := 0 goto {3}
+
+1: x := UPD(x, (25 ), 4) goto {}
+
+3: if (TRUE AND ((UPD(x, (25 ), 4)) < (5))) then {4, 7} else {}
+
+4: if (y <= n) then {5} else {}
+
+
+
+
+
+
+7: if (NOT (y <= n)) then {8} else {}
+
+

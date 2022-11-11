@@ -1,19 +1,16 @@
-
-program = ws definition*:def ws block*:b ws {Prog(:def, :b)};
+program = ws definition*:def ws operator*:op ws {VMProg(:def, :op)};
 
 definition = ws "VAR" ws variable:v ws ":" ws type:t ws ";" ws {Def(:v, :t)};
 
 type = ws "INT" ws {Int()} | ws "(" ws type:ind ws "ARRAY OF " ws type:t ws ")" ws {Array(:ind, :t)};
 
-block = "{" ws block:b ws "U" ws block:c "}" ws {Union(:b, :c)} |
-		"{" ws instruction*:ins ws "}" {Block(:ins)} |
-		"(" ws block:b ws ")*" ws {Iter(:b)};
+operator =  mark:m ws ":" ws variable:v ws ":=" ws expr:e ws "goto" ws set:s ws {Assgn(:m, :v, :e, :s)} |
+			mark:m ws ":" ws "if" ws predicat:p ws "then" ws set:t ws "else" ws set:f ws {If(:m, :p, :t, :f)};
 
-instruction = assignment:a ws {:a} | test:t ws {:t} | block:b ws {:b};
-		
-assignment = variable:v ws ":=" ws expr:e ws ";" ws {Assign(:v, :e)};
+mark = (digit+)$d {Mark(s2i($d))};
 
-test = predicat:p "?;" ws {Test(:p)};
+set = "{" ws element*:m ws "}" ws {SetMark(:m)};
+element = mark:m ws "," ws {:m} | mark:m ws {:m};
 
 predicat =  "(" ws predicat:p1 ws logicOperator:lop ws predicat:p2 ws ")" ws {Pred(:p1, :lop, :p2)} |
 			"(" ws "NOT" ws predicat:p ws ")" ws {Not(:p)} | "(" ws predicat:p ws ")" ws {:p} | expr:e {:e} | "TRUE"$s ws {$s} | "FALSE"$s ws {$s};
@@ -32,4 +29,4 @@ operator = ("+" | "-" | "*" | "/")$s ws {$s};
 variable = (('a' - 'z')+ digit*)$v ws {Var($v)}; 
 const = ("-"? digit+)$c ws {Const(s2i($c))};
 digit = '0' - '9';
-ws = (" " | "\t" | "\n" | "\r")*;
+ws = (" " | "\t" | "\n" | "\r")*; 
