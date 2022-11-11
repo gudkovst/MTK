@@ -11,7 +11,7 @@ Test : (p : LogExpr);
 Union : (b : Body, c : Body);
 Iter : (b : Body);
 Block : (ins : [Instr]);
-Instr ::= Assign, Test;
+Instr ::= Assign, Test, Body;
 
 	s2p(prog : string) -> Prog;
 }
@@ -38,14 +38,44 @@ s2p(prog : string) -> Prog {
 		   }), prog, defaultPegActions);
 }
 
-/*p2s(prog : Prog) -> string {
+printProg(prog : Prog) {
+	switch(prog){
+		Prog(defs, bodys) : {
+			map(defs, println);
+			map(bodys, printBody);
+		}
+	}
+}
 
-}*/
+printBody(body : Body) {
+	switch(body){
+		Block(ins) : {
+			println("{");
+			map(ins, \i -> switch(i){
+				Body(c) : printBody(i);
+				default : println(i);
+			});
+			println("}");
+		};
+		Union(b, c) : {
+			println("{");
+			printBody(b);
+			println("UNION");
+			printBody(c);
+			println("}");
+		};
+		Iter(b) : {
+			println("Iter {");
+			printBody(b);
+			println("}");
+		};
+	}
+}
 
 main(){
 	str = getFileContent("nemo.txt");
-	println(str);
+	//println(str);
 	prog = s2p(str);
-	println(prog);
+	printProg(prog);
 	quit(0);
 }

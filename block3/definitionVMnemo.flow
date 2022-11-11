@@ -1,14 +1,10 @@
 import lingo/pegcode/driver;
 import material/material;
 
-export{
-
 VMProg : (defs : [Def], op : [Oper]);
 Oper ::= Assgn, If;
 Assgn : (m : Mark, v : Var, e : Expr, s : SetMark);
 If : (m : Mark, p : LogExpr, t : SetMark, f : SetMark);
-
-}
 
 Def : (v : Var, t : Type);
 Type ::= Int, Array;
@@ -22,7 +18,11 @@ LogExpr ::= Pred, Not, Expr;
 Pred : (e1 : Expr, opr : string, e2 : Expr);
 Not : (p : Pred);
 Expr ::= Arifm, APP, UPD, Var, Const;
-Arifm : (e1 : Expr, opr : string, e2 : Expr);
+Arifm ::= Sum, Sub, Mul, Div;
+Sum : (p : Expr, q : Expr);
+Sub : (p : Expr, q : Expr);
+Mul : (p : Expr, q : Expr);
+Div : (p : Expr, q : Expr);
 APP : (e1 : Expr, e2 : Expr);
 UPD : (e1 : Expr, e2 : Expr, e3 : Expr);
 Const : (p : int);
@@ -35,10 +35,19 @@ s2p(prog : string) -> VMProg {
 		   }), prog, defaultPegActions);
 }
 
+printVMProg(prog : VMProg){
+	switch(prog){
+		VMProg(defs, opers) : {
+			map(defs, println);
+			map(opers, println);
+		}
+	}
+}
+
 main(){
 	str = getFileContent("VMnemo.txt");
 	//println(str);
 	prog = s2p(str);
-	println(prog);
+	printVMProg(prog);
 	quit(0);
 }

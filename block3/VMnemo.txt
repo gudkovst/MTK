@@ -8,12 +8,14 @@ VAR n: INT; VAR x: INT; VAR y: INT;
 
 1: x := UPD(x, (25 ), 4) goto {}
 
-3: if (TRUE AND ((UPD(x, (25 ), 4)) < (5))) then {4, 7} else {}
+3: if (TRUE AND ((UPD(x, (25 * 3 ), 4)) < (5 + 1))) then {4, 7} else {}
 
 4: if (y <= n) then {5} else {}
 
 
+5: y := (y + (x + (x + 1))) goto {6}
 
+6: x := (x + 1) goto {3}
 
 
 
