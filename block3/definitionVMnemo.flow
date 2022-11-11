@@ -1,32 +1,32 @@
 import lingo/pegcode/driver;
 import material/material;
 
-VMProg : (defs : [Def], op : [Oper]);
+VMProg : (defs : [Definit], op : [Oper]);
 Oper ::= Assgn, If;
-Assgn : (m : Mark, v : Var, e : Expr, s : SetMark);
-If : (m : Mark, p : LogExpr, t : SetMark, f : SetMark);
+Assgn : (m : Mark, v : VMVar, e : VMExpr, s : SetMark);
+If : (m : Mark, p : VMLogVMExpr, t : SetMark, f : SetMark);
 
-Def : (v : Var, t : Type);
-Type ::= Int, Array;
-Int : ();
-Array : (ind : Type, val : Type);
+Definit : (v : VMVar, t : VMType);
+VMType ::= VMInt, VMArray;
+VMInt : ();
+VMArray : (ind : VMType, val : VMType);
 
 Mark : (m : int);
 SetMark : (marks : [Mark]);
 
-LogExpr ::= Pred, Not, Expr;
-Pred : (e1 : Expr, opr : string, e2 : Expr);
-Not : (p : Pred);
-Expr ::= Arifm, APP, UPD, Var, Const;
-Arifm ::= Sum, Sub, Mul, Div;
-Sum : (p : Expr, q : Expr);
-Sub : (p : Expr, q : Expr);
-Mul : (p : Expr, q : Expr);
-Div : (p : Expr, q : Expr);
-APP : (e1 : Expr, e2 : Expr);
-UPD : (e1 : Expr, e2 : Expr, e3 : Expr);
-Const : (p : int);
-Var : (p : string);
+VMLogVMExpr ::= VMPred, VMNot, VMExpr;
+VMPred : (e1 : VMExpr, opr : string, e2 : VMExpr);
+VMNot : (p : VMPred);
+VMExpr ::= VMArifm, VMAPP, VMUPD, VMVar, VMConst;
+VMArifm ::= Sum, Sub, Mul, Div;
+Sum : (p : VMExpr, q : VMExpr);
+Sub : (p : VMExpr, q : VMExpr);
+Mul : (p : VMExpr, q : VMExpr);
+Div : (p : VMExpr, q : VMExpr);
+VMAPP : (e1 : VMExpr, e2 : VMExpr);
+VMUPD : (e1 : VMExpr, e2 : VMExpr, e3 : VMExpr);
+VMConst : (p : int);
+VMVar : (p : string);
 
 s2p(prog : string) -> VMProg {
 	lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
