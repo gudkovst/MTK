@@ -1,34 +1,55 @@
 import lingo/pegcode/driver;
 import material/material;
+import definitionNemo;
 
-VMProg : (defs : [Definit], op : [Oper]);
+export{
+
+VMProg : (defs : [Def], op : [Oper]);
 Oper ::= Assgn, If;
-Assgn : (m : Mark, v : VMVar, e : VMExpr, s : SetMark);
-If : (m : Mark, p : VMLogVMExpr, t : SetMark, f : SetMark);
-
-Definit : (v : VMVar, t : VMType);
-VMType ::= VMInt, VMArray;
-VMInt : ();
-VMArray : (ind : VMType, val : VMType);
+Assgn : (m : Mark, v : Var, e : Expr, s : SetMark);
+If : (m : Mark, p : LogExpr, t : SetMark, f : SetMark);
 
 Mark : (m : int);
 SetMark : (marks : [Mark]);
 
-VMLogVMExpr ::= VMPred, VMNot, VMExpr;
-VMPred : (e1 : VMExpr, opr : string, e2 : VMExpr);
-VMNot : (p : VMPred);
-VMExpr ::= VMArifm, VMAPP, VMUPD, VMVar, VMConst;
-VMArifm ::= Sum, Sub, Mul, Div;
-Sum : (p : VMExpr, q : VMExpr);
-Sub : (p : VMExpr, q : VMExpr);
-Mul : (p : VMExpr, q : VMExpr);
-Div : (p : VMExpr, q : VMExpr);
-VMAPP : (e1 : VMExpr, e2 : VMExpr);
-VMUPD : (e1 : VMExpr, e2 : VMExpr, e3 : VMExpr);
-VMConst : (p : int);
-VMVar : (p : string);
+//everything else is defined in definitionNemo
 
-s2p(prog : string) -> VMProg {
+//methods for manipulation entity VMnemo
+	getValueMark(m : Mark) -> int;
+	getMaxValueMark(s : SetMark) -> int;
+	getArrayValueMarks(s : SetMark) -> [int];
+	getMark(op : Oper) -> Mark;
+	s2VMp(prog : string) -> VMProg;
+	printVMProg(prog : VMProg) -> [void];
+}
+
+getValueMark(m : Mark) -> int {
+	switch(m){
+		Mark(i) : i;
+	}
+}
+
+getMark(op : Oper) -> Mark {
+	switch(op){
+		Assgn(m, v, e, s) : m;
+		If(m, p, t, f) : m;
+	}
+}
+
+getMaxValueMark(s : SetMark) -> int {
+	switch(s){
+		SetMark(marks) : if (length(marks) == 0) 0
+						else fold(map(marks, getValueMark), getValueMark(marks[0]), max);
+	}
+}
+
+getArrayValueMarks(s : SetMark) -> [int] {
+	switch(s){
+		SetMark(marks) : map(marks, getValueMark);
+	}
+}
+
+s2VMp(prog : string) -> VMProg {
 	lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
 	parsic(onlyOnce(lingoGrammarOp, \ -> {
 			   compilePegGrammar("#include VMnemo.lingo");
@@ -46,8 +67,7 @@ printVMProg(prog : VMProg){
 
 main(){
 	str = getFileContent("VMnemo.txt");
-	//println(str);
-	prog = s2p(str);
+	prog = s2VMp(str);
 	printVMProg(prog);
 	quit(0);
 }

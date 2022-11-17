@@ -1,0 +1,118 @@
+import definitionVMnemo;
+import math/math;
+
+define(defs : [Def]) -> Tree<Var, [int]>{
+	fold(defs, makeTree(), \tree, def -> switch(def){
+		Def(v, t) : setTree(tree, v, []);
+	});
+}
+
+makeTreeOpers(opers : [Oper]) -> Tree<Mark, [Oper]>{
+	fold(opers, makeTree(), \tree, oper -> 
+		setTree(tree, getMark(oper), concat(getTreeArrayValue(tree, getMark(oper)), [oper])));
+}
+
+execOper(opers : Tree<Mark, [Oper]>, vars : Tree<Var, [int]>, mark : Mark) -> Tree<Var, [int]>{
+	if (!containsKeyTree(opers, mark)) vars
+	else {
+		arrOpers = getTreeArrayValue(opers, mark);
+		rand = randomGenerator(getValueMark(mark));
+		oper = arrOpers[ceil(rand()) % length(arrOpers)];
+		println(oper);
+		switch(oper){
+			Assgn(m, v, e, s) : {
+				if (!containsKeyTree(vars, v)) makeTree()
+				else{
+					varsTree = setTree(vars, v, calc(e, vars));
+					set = getArrayValueMarks(s);
+					if (length(set) == 0) makeTree()
+					else {
+						markNext = set[ceil(rand()) % length(set)];
+						execOper(opers, varsTree, Mark(markNext));
+					}
+				}
+			};
+			If(m, p, t, f) : {
+				if (test(p, vars)){
+					set = getArrayValueMarks(t);
+					if (length(set) == 0) makeTree()
+					else {
+						markNext = set[ceil(rand()) % length(set)];
+						execOper(opers, vars, Mark(markNext));
+					}
+				}
+				else {
+					set = getArrayValueMarks(f);
+					if (length(set) == 0) makeTree()
+					else {
+						markNext = set[ceil(rand()) % length(set)];
+						execOper(opers, vars, Mark(markNext));
+					}
+				}
+			};
+		}
+	}
+}
+
+calc(e : Expr, vars : Tree<Var, [int]>) -> [int] {
+	switch(e){
+		Sum(p, q) : [calc(p, vars)[0] + calc(q, vars)[0]];
+		Sub(p, q) : [calc(p, vars)[0] - calc(q, vars)[0]];
+		Mul(p, q) : [calc(p, vars)[0] * calc(q, vars)[0]];
+		Div(p, q) : [calc(p, vars)[0] / calc(q, vars)[0]];
+		APP(arr, ind) : [getTreeArrayValue(vars, arr)[calc(ind, vars)[0]]];
+		UPD(arr, ind, val) : {
+			a = getTreeArrayValue(vars, arr);
+			index = calc(ind, vars)[0];
+			if (index < length(a)) mapi(a, \i, x -> if (i == index) calc(val, vars)[0] else x)
+			else arrayPush(a, calc(val, vars)[0]);
+		};
+		Var(s) : {
+			res = getTreeArrayValue(vars, e);
+			if (length(res) == 0) [0]
+			else res;
+		};
+		Const(a) : [a];
+	}
+}
+
+test(p : LogExpr, vars : Tree<Var, [int]>) -> bool {
+	switch(p){
+		Pred(p1, opr, p2) : { 
+			if (opr == "AND") test(p1, vars) && test(p2, vars)
+			else test(p1, vars) || test(p2, vars);
+		};
+		Not(r) : !test(r, vars);
+		Compare(e1, opr, e2) : {
+			v1 = calc(e1, vars)[0];
+			v2 = calc(e2, vars)[0];
+			if (opr == "=") v1 == v2
+			else if (opr == "<=") v1 <= v2
+			else if (opr == ">=") v1 >= v2
+			else if (opr == "<") v1 < v2
+			else if (opr == ">") v1 > v2
+			else if (opr == "!=") v1 != v2
+			else false;
+		};
+		TRUE() : true;
+		FALSE() : false;
+	}
+}
+
+printVars(v : Var, x : [int]){
+	print(switch(v){ Var(name) : name;});
+	print(" : ");
+	println(x);
+}
+
+main(){
+	str = getFileContent("VMnemo.txt");
+	prog = s2VMp(str);
+	//printVMProg(prog);
+	vars = define(switch(prog){VMProg(defs, ops) : defs;});
+	opers = makeTreeOpers(switch(prog){VMProg(defs, ops) : ops;});
+	res = execOper(opers, vars, Mark(0));
+	if (isEmptyTree(res)) println("AVOST")
+	else f = mapTree2(res, printVars);
+	quit(0);
+}

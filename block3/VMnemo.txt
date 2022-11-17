@@ -1,24 +1,31 @@
 VAR n: INT; VAR x: INT; VAR y: INT;
+VAR a: (INT ARRAY OF INT);
 
-0: n := 12 goto {1}
+0: n := 11 goto {1}
+
+1: a := UPD(a, 0, 2) goto {10}
+
+10: a := UPD(a, 0, 25) goto {3} 
 
 1: x := 0 goto {2}
 
 2: y := 0 goto {3}
 
-1: x := UPD(x, (25 ), 4) goto {}
+3: y := (n + x) goto {5}
 
-3: if (TRUE AND ((UPD(x, (25 * 3 ), 4)) < (5 + 1))) then {4, 7} else {}
+1: x := UPD(x, 0, 4) goto {}
+
+3: if (TRUE AND ((UPD(x, 25, 4)) < (5 + 1))) then {4, 7} else {}
 
 4: if (y <= n) then {5} else {}
 
 
 5: y := (y + (x + (x + 1))) goto {6}
 
-6: x := (x + 1) goto {3}
+6: x := (x + 1) goto {10}
 
 
 
-7: if (NOT (y <= n)) then {8} else {}
+7: if (NOT (y >= n)) then {8} else {}
 
 

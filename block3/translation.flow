@@ -1,0 +1,84 @@
+import definitionNemo;
+import definitionVMnemo;
+import math/math;
+
+translate(nemoprog : Prog) -> VMProg {
+	switch(nemoprog){
+		Prog(defs, bodys) : VMProg(defs, fold(map(bodys, B2VM), [], concat));
+	}
+}
+
+B2VM(nemoBlock : Body) -> [Oper] {
+	switch(nemoBlock){
+		Assign(v, e) : [Assgn(Mark(0), v, e, SetMark([Mark(1)]))];
+		Test(p) : [If(Mark(0), p, SetMark([Mark(1)]), SetMark([]))];
+		Block(ins) : {
+			instrs = map(ins, B2VM);
+			opers = shiftArray(instrs, 0);
+			fold(opers, [], concat);
+		};
+		Iter(b) : {
+			opers = map(B2VM(b), \i -> shiftMark(i, 1));
+			end = maxArr(map(opers, maxMark));
+			concat([If(Mark(0), TRUE(), SetMark([Mark(1), Mark(end)]), SetMark([]))], map(opers, \i -> replaceMark(i, end, 0)));
+		};
+		Union(b, c) : {
+			opersb = map(B2VM(b), \i -> shiftMark(i, 1));
+			endb = maxArr(map(opersb, maxMark));
+			opersc = map(B2VM(c), \i -> shiftMark(i, endb));
+			endc = maxArr(map(opersc, maxMark));
+			concat([If(Mark(0), TRUE(), SetMark([Mark(1), Mark(endb)]), SetMark([]))], concat(map(opersb, \i -> replaceMark(i, endb, endc)), opersc));
+		};
+	}
+}
+
+maxMark(op : Oper) -> int {
+	switch(op){
+		Assgn(m, v, e, s) : max(getValueMark(m), getMaxValueMark(s));
+		If(m, p, t, f) : max3(getValueMark(m), getMaxValueMark(t), getMaxValueMark(f));
+	}
+}
+
+shiftMark(op : Oper, shift : int) -> Oper {
+	switch(op){
+		Assgn(m, v, e, s) : Assgn(Mark(getValueMark(m) + shift), v, e, SetMark(map(getArrayValueMarks(s), \i -> Mark(i + shift))));
+		If(m, p, t, f) : If(Mark(getValueMark(m) + shift), p, SetMark(map(getArrayValueMarks(t), \i -> Mark(i + shift))), 
+							SetMark(map(getArrayValueMarks(f), \i -> Mark(i + shift))));
+	}
+}
+
+replaceMark(op : Oper, old : int, new : int) -> Oper {
+	switch(op){
+		Assgn(m, v, e, s) : {
+			if (getValueMark(m) == old) Assgn(Mark(new), v, e, SetMark(map(getArrayValueMarks(s), \i -> if (i == old) Mark(new) else Mark(i))))
+			else Assgn(m, v, e, SetMark(map(getArrayValueMarks(s), \i -> if (i == old) Mark(new) else Mark(i))));
+		};
+		If(m, p, t, f) : {
+			if (getValueMark(m) == old) If(Mark(new), p, SetMark(map(getArrayValueMarks(t), \i -> if (i == old) Mark(new) else Mark(i))), 
+									SetMark(map(getArrayValueMarks(f), \i -> if (i == old) Mark(new) else Mark(i))))
+			else If(m, p, SetMark(map(getArrayValueMarks(t), \i -> if (i == old) Mark(new) else Mark(i))), 
+						SetMark(map(getArrayValueMarks(f), \i -> if (i == old) Mark(new) else Mark(i))));
+		};
+	}
+}
+
+shiftArray(opers : [[Oper]], step : int) -> [[Oper]] {
+	if (step == length(opers)) opers
+	else if (step == 0) shiftArray(opers, 1)
+	else {
+		shift = maxArr(map(opers[step - 1], maxMark));
+		shiftArray(replace(opers, step, map(opers[step], \oper -> shiftMark(oper, shift))), step + 1);
+	}
+} 
+
+maxArr(array : [int]) -> int {
+	if (length(array) == 0) 0
+	else fold(array, array[0], max);
+}
+
+main(){
+	str = getFileContent("VMexec.txt");
+	prog = s2p(str);
+	printVMProg(translate(prog));
+	quit(0);
+}

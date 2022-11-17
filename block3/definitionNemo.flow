@@ -5,7 +5,7 @@ export{
 
 Prog : (defs : [Def], body : [Body]);
 
-Body ::= Union, Iter, Block;
+Body ::= Union, Iter, Block, Assign, Test;
 Assign : (v : Var, expr : Expr);
 Test : (p : LogExpr);
 Union : (b : Body, c : Body);
@@ -13,23 +13,32 @@ Iter : (b : Body);
 Block : (ins : [Instr]);
 Instr ::= Assign, Test, Body;
 
-	s2p(prog : string) -> Prog;
-}
+//common in nemo and VMnemo
 
 Def : (v : Var, t : Type);
 Type ::= Int, Array;
 Int : ();
 Array : (ind : Type, val : Type);
 
-LogExpr ::= Pred, Not, Expr;
-Pred : (e1 : Expr, opr : string, e2 : Expr);
-Not : (p : Pred);
+LogExpr ::= Pred, Not, Compare, TRUE, FALSE;
+Pred : (p1 : LogExpr, opr : string, p2 : LogExpr);
+Not : (p : LogExpr);
+Compare : (e1 : Expr, opr : string, e2 : Expr);
+TRUE : ();
+FALSE : ();
 Expr ::= Arifm, APP, UPD, Var, Const;
-Arifm : (e1 : Expr, opr : string, e2 : Expr);
-APP : (e1 : Expr, e2 : Expr);
-UPD : (e1 : Expr, e2 : Expr, e3 : Expr);
+Arifm ::= Sum, Sub, Mul, Div;
+Sum : (p : Expr, q : Expr);
+Sub : (p : Expr, q : Expr);
+Mul : (p : Expr, q : Expr);
+Div : (p : Expr, q : Expr);
+APP : (arr : Var, ind : Expr);
+UPD : (arr : Var, ind : Expr, val : Expr);
 Const : (p : int);
 Var : (p : string);
+
+	s2p(prog : string) -> Prog;
+}
 
 s2p(prog : string) -> Prog {
 	lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
@@ -51,10 +60,7 @@ printBody(body : Body) {
 	switch(body){
 		Block(ins) : {
 			println("{");
-			map(ins, \i -> switch(i){
-				Body(c) : printBody(i);
-				default : println(i);
-			});
+			map(ins, printBody);
 			println("}");
 		};
 		Union(b, c) : {
@@ -69,12 +75,12 @@ printBody(body : Body) {
 			printBody(b);
 			println("}");
 		};
+		default : println(body);
 	}
 }
 
 main(){
-	str = getFileContent("nemo.txt");
-	//println(str);
+	str = getFileContent("VMexec.txt");
 	prog = s2p(str);
 	printProg(prog);
 	quit(0);

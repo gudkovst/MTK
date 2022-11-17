@@ -16,18 +16,21 @@ assignment = variable:v ws ":=" ws expr:e ws ";" ws {Assign(:v, :e)};
 test = predicat:p "?;" ws {Test(:p)};
 
 predicat =  "(" ws predicat:p1 ws logicOperator:lop ws predicat:p2 ws ")" ws {Pred(:p1, :lop, :p2)} |
-			"(" ws "NOT" ws predicat:p ws ")" ws {Not(:p)} | "(" ws predicat:p ws ")" ws {:p} | expr:e {:e} | "TRUE"$s ws {$s} | "FALSE"$s ws {$s};
+			"(" ws expr:e1 ws cmpOperator:op ws expr:e2 ws ")" ws {Compare(:e1, :op, :e2)} |
+			"(" ws "NOT" ws predicat:p ws ")" ws {Not(:p)} | "(" ws predicat:p ws ")" ws {:p} | "TRUE" ws {TRUE()} | "FALSE" ws {FALSE()};
 
 expr = arifmExpr:e ws {:e} | funcExpr:e ws {:e} | const:c ws {:c} | variable:v ws {:v} | "(" ws expr:e ws ")" ws {:e};
 
-arifmExpr = "(" ws expr:e1 operator:opr expr:e2 ws ")" ws {Arifm(:e1, :opr, :e2)};
+arifmExpr = "(" ws expr:t "+" ws expr:p ")" ws {Sum(:t, :p)} |
+			"(" ws expr:t "-" ws expr:p ")" ws {Sub(:t, :p)} |
+			"(" ws expr:t "*" ws expr:p ")" ws {Mul(:t, :p)} |
+			"(" ws expr:t "/" ws expr:p ")" ws {Div(:t, :p)};
 
-funcExpr = "APP(" expr:e1 ", " expr:e2 ")" ws {APP(:e1, :e2)} | 
-		   "UPD(" expr:e1 ", " expr:e2 ", " expr:e3 ")" ws {UPD(:e1, :e2, :e3)};
+funcExpr = "APP(" variable:arr ", " expr:ind ")" ws {APP(:arr, :ind)} | 
+		   "UPD(" variable:arr ", " expr:ind ", " expr:val ")" ws {UPD(:arr, :ind, :val)};
 
-logicOperator = ("=" | "<=" | ">=" | "<" | ">" | "!=" | "OR" | "AND")$s ws {$s};
-
-operator = ("+" | "-" | "*" | "/")$s ws {$s};
+cmpOperator = ("=" | "<=" | ">=" | "<" | ">" | "!=")$s ws {$s};
+logicOperator = ("OR" | "AND")$s ws {$s};
 
 variable = (('a' - 'z')+ digit*)$v ws {Var($v)}; 
 const = ("-"? digit+)$c ws {Const(s2i($c))};
