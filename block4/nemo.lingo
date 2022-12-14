@@ -1,0 +1,43 @@
+hoareTrio = ws precondition:pre ws program:prog ws postcondition:post ws {HoareTrio(:pre, :prog, :post)};
+
+precondition = "{" ws definition*:def ws predicat:f ws "}" ws {Precond(:def, :f)};
+
+postcondition = "{" ws predicat:f ws "}" ws {Postcond(:f)};
+
+program = ws definition*:def ws block*:b ws {Prog(:def, :b)};
+
+definition = ws "VAR" ws variable:v ws ":" ws type:t ws ";" ws {Def(:v, :t)};
+
+type = ws "INT" ws {Int()} | ws "(" ws type:ind ws "ARRAY OF " ws type:t ws ")" ws {Array(:ind, :t)};
+
+block = "{" ws block:b ws "U" ws block:c "}" ws {Union(:b, :c)} |
+		"{" ws instruction*:ins ws "}" {Block(:ins)} |
+		"(" ws block:b ws ")*" ws "{" ws predicat:p ws "}" ws {Iter(:b, :p)};
+
+instruction = assignment:a ws {:a} | test:t ws {:t} | block:b ws {:b};
+		
+assignment = variable:v ws ":=" ws expr:e ws ";" ws {Assign(:v, :e)};
+
+test = predicat:p "?;" ws {Test(:p)};
+
+predicat =  "(" ws "ALL" ws definition:def ws predicat:p ws ")" ws {All(:def, :p)} |
+		    "(" ws "EXIST" ws definition:def ws predicat:p ws ")" ws {Exist(:def, :p)} |
+			"(" ws predicat:p1 ws logicOperator:lop ws predicat:p2 ws ")" ws {Pred(:p1, :lop, :p2)} |
+			"(" ws expr:e1 ws cmpOperator:op ws expr:e2 ws ")" ws {Compare(:e1, :op, :e2)} |
+			"(" ws "NOT" ws predicat:p ws ")" ws {Not(:p)} | "(" ws predicat:p ws ")" ws {:p} | "TRUE" ws {TRUE()} | "FALSE" ws {FALSE()};
+
+expr = arifmExpr:e ws {:e} | funcExpr:e ws {:e} | const:c ws {:c} | variable:v ws {:v} | "(" ws expr:e ws ")" ws {:e};
+
+arifmExpr = "(" ws expr:t ws arifmOperator:s ws expr:p ")" ws {Arifm(:t, :s, :p)};
+
+funcExpr = "APP(" variable:arr ", " expr:ind ")" ws {APP(:arr, :ind)} | 
+		   "UPD(" variable:arr ", " expr:ind ", " expr:val ")" ws {UPD(:arr, :ind, :val)};
+
+cmpOperator = ("=" | "<=" | ">=" | "<" | ">" | "!=")$s ws {$s};
+arifmOperator = ("+" | "-" | "*" | "/")$s ws {$s};
+logicOperator = ("OR" | "AND" | "->")$s ws {$s};
+
+variable = (('a' - 'z')+ digit*)$v ws {Var($v)}; 
+const = ("-"? digit+)$c ws {Const(s2i($c))};
+digit = '0' - '9';
+ws = (" " | "\t" | "\n" | "\r")*;

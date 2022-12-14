@@ -1,0 +1,11 @@
+{ VAR a : INT; VAR b : INT; ((a>0) AND (b>0)) }
+VAR x : INT; VAR y : INT; {
+	x := a ; y := b ;
+	
+	 ( { (x>y) ?; x := (x-y);  })* {(x != 0)}
+	 
+	(x=y)?;
+}
+{ (((EXIST VAR m : INT; ((m>0) AND (a=(m*x))) ) AND (EXIST VAR n : INT; ((n>0) AND (b=(n*x))))) AND
+(ALL VAR z : INT;
+( ((EXIST VAR p : INT; ((p>0) AND (a=(p*z))) ) AND (EXIST VAR q : INT; ((q>0) AND (b=(q*z))))) OR (z<=x)))) }
