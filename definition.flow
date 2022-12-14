@@ -1,0 +1,99 @@
+import lingo/pegcode/driver;
+import material/material;
+
+export{
+
+HoareTrio : (pre : Precond, prog : Prog, post : Postcond);
+
+Precond : (defs : [Def], f : Formula);
+Postcond : (f : Formula);
+
+Prog : (defs : [Def], body : [Body]);
+
+Body ::= Union, Iter, Block, Assign, Test;
+Assign : (v : Var, expr : Expr);
+Test : (p : Formula);
+Union : (b : Body, c : Body);
+Iter : (b : Body, p : Formula);
+Block : (ins : [Instr]);
+Instr ::= Assign, Test, Body;
+
+Def : (v : Var, t : Type);
+Type ::= Int, Array;
+Int : ();
+Array : (ind : Type, val : Type);
+
+Formula ::= Pred, Not, Compare, TRUE, FALSE, All, Exist;
+Pred : (p1 : Formula, opr : string, p2 : Formula);
+All : (def : Def, p : Formula);
+Exist : (def : Def, p : Formula);
+Not : (p : Formula);
+Compare : (e1 : Expr, opr : string, e2 : Expr);
+TRUE : ();
+FALSE : ();
+Expr ::= Arifm, APP, UPD, Var, Const;
+Arifm : (p : Expr, op : string, q : Expr);
+APP : (arr : Var, ind : Expr);
+UPD : (arr : Var, ind : Expr, val : Expr);
+Const : (p : int);
+Var : (p : string);
+
+	s2t(trio : string) -> HoareTrio;
+}
+
+s2t(trio : string) -> HoareTrio {
+	lingoGrammarOp : ref Maybe<[PegOp]> = ref None();
+	parsic(onlyOnce(lingoGrammarOp, \ -> {
+			   compilePegGrammar("#include nemo.lingo");
+		   }), trio, defaultPegActions);
+}
+
+printTrio(trio : HoareTrio){
+	switch(trio){
+		HoareTrio(pre, prog, post) : {
+			println(pre);
+			printProg(prog);
+			println(post);
+		}
+	}
+}
+
+printProg(prog : Prog) {
+	switch(prog){
+		Prog(defs, bodys) : {
+			map(defs, println);
+			map(bodys, printBody);
+		}
+	}
+}
+
+printBody(body : Body) {
+	switch(body){
+		Block(ins) : {
+			println("{");
+			map(ins, printBody);
+			println("}");
+		};
+		Union(b, c) : {
+			println("{");
+			printBody(b);
+			println("UNION");
+			printBody(c);
+			println("}");
+		};
+		Iter(b, p) : {
+			println("Iter {");
+			printBody(b);
+			println("}");
+			println(p)
+		};
+		default : println(body);
+	}
+}
+
+/*main(){
+	str = getFileContent("spec.txt");
+	trio = s2t(str);
+	printTrio(trio);
+	quit(0);
+}*/
