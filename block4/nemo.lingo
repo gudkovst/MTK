@@ -33,9 +33,9 @@ arifmExpr = "(" ws expr:t ws arifmOperator:s ws expr:p ")" ws {Arifm(:t, :s, :p)
 funcExpr = "APP(" variable:arr ", " expr:ind ")" ws {APP(:arr, :ind)} | 
 		   "UPD(" variable:arr ", " expr:ind ", " expr:val ")" ws {UPD(:arr, :ind, :val)};
 
-cmpOperator = ("=" | "<=" | ">=" | "<" | ">" | "!=")$s ws {$s};
+cmpOperator = ("=" | "<=" | ">=" | "<" | ">")$s ws {$s};
 arifmOperator = ("+" | "-" | "*" | "/")$s ws {$s};
-logicOperator = ("OR" | "AND" | "->")$s ws {$s};
+logicOperator = ("or" | "and" | "=>")$s ws {$s};
 
 variable = (('a' - 'z')+ digit*)$v ws {Var($v)}; 
 const = ("-"? digit+)$c ws {Const(s2i($c))};

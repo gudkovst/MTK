@@ -1,4 +1,4 @@
-{ VAR a : INT; VAR b : INT; ((a>0) AND (b>0)) }
+{ VAR a : INT; VAR b : INT; ((a>0) and (b>0)) }
 VAR n: INT; VAR x: INT; VAR y: INT; {{
 
 	n := 12; x := 0; y := 0;
@@ -14,14 +14,14 @@ VAR n: INT; VAR x: INT; VAR y: INT; {{
 			x := (x + 1);
 			f := (8);
 
-		})* { (x < y) }
+		})* { (x < 5) }
 
-		(NOT ((y <= n) OR (y > n)))?;
+		(NOT ((y <= n) or (y > n)))?;
 		(TRUE)?;
 
 	}
 
 	x := (x - 1);
 
-} U {y := 4; ((x > 3) OR (n < y))?;}}
-{ (x != 0) }
+} U {y := 4; x := 1; n := (x * y); ((x > 3) or (n < y))?;}}
+{ (x >= 0) }

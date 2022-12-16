@@ -1,17 +1,21 @@
 import material/material;
 import definition;
 
+export{
+	generateVC(trio : HoareTrio) -> [Formula];
+}
+
 VC(fi : Formula, oper : Body, psi : [Formula]) -> [Formula] {
 	switch(oper){
-		Assign(v, expr) : map(psi, \f -> Pred(fi, "->", replaceVar(f, v, expr)));
-		Test(xi) : map(psi, \f -> Pred(fi, "->", Pred(xi, "->", f)));
+		Assign(v, expr) : map(psi, \f -> Pred(fi, "=>", replaceVar(f, v, expr)));
+		Test(xi) : map(psi, \f -> Pred(fi, "=>", Pred(xi, "=>", f)));
 		Block(ins) : {
 			len = length(ins) - 1;
 			if (len == 0) VC(fi, ins[len], psi)
 			else VC(fi, Block(take(ins, len)), VC(TRUE(), ins[len], psi));
 		};
 		Union(b, c) : concat(VC(fi, b, psi), VC(fi, c, psi));
-		Iter(b, xi) : concat([Pred(fi, "->", xi)], VC(xi, b, [xi]));
+		Iter(b, xi) : concat([Pred(fi, "=>", xi)], VC(xi, b, [xi]));
 	}
 }
 
@@ -31,7 +35,7 @@ recalc(e : Expr, v : Var, expr : Expr) -> Expr {
 		Arifm(p, op, q) : Arifm(recalc(p, v, expr), op, recalc(q, v, expr));
 		APP(arr, ind) : APP(arr, recalc(ind, v, expr));
 		UPD(arr, ind, val) : UPD(arr, recalc(ind, v, expr), recalc(val, v, expr));
-		Var(w) : if (v == e) v else expr; 
+		Var(w) : if (v == e) expr else e; 
 		default : e;
 	}
 }
@@ -69,7 +73,14 @@ getPost(t : HoareTrio) -> [Formula] {
 	}
 }
 
-main(){
+generateVC(trio : HoareTrio) -> [Formula] {
+	fi = getPred(trio);
+	bodys = getBody(trio);
+	psi = getPost(trio);
+	fold(map(bodys, \b -> VC(fi, b, psi)), [], concat);
+}
+
+/*main(){
 	str = getFileContent("nemo.txt");
 	trio = s2t(str);
 	fi = getPred(trio);
@@ -77,4 +88,4 @@ main(){
 	psi = getPost(trio);
 	map(map(bodys, \b -> VC(fi, b, psi)), \i -> map(i, println));
 	quit(0);
-}
+}*/

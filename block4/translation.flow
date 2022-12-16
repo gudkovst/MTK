@@ -1,0 +1,54 @@
+import material/material;
+import generatorVC;
+
+translateDefs(trio : HoareTrio) -> [string] {
+	switch(trio){
+		HoareTrio(fi, prog, psi) : 
+			switch(fi){
+				Precond(defs, f) : map(defs, \def ->
+					switch(def){
+						Def(v, t) : "(declare-const " + translateExpr(v) + " " + Type2Str(t) + ")";
+					});
+			};
+	}
+}
+
+Type2Str(t : Type) -> string {
+	switch(t){
+		Int() : "Int";
+		Array(ind, val) : "(Array " + Type2Str(ind) + " " + Type2Str(val) + ")";
+	}
+}
+
+translateFormul(formula : Formula) -> string {
+	switch(formula){
+		Pred(f1, opr, f2) : "(" + opr + " " + translateFormul(f1) + " " + translateFormul(f2) + ")";
+		All(def, f) : switch(def){
+			Def(v, t) : "(forall ((" + translateExpr(v) + " " + Type2Str(t) + ")) " + translateFormul(f) + ")";
+		}
+		Exist(def, f) : translateFormul(Not(All(def, Not(f))));
+		Not(f) : "(not " + translateFormul(f) + ")";
+		Compare(e1, opr, e2) : "(" + opr + " " + translateExpr(e1) + " " + translateExpr(e2) + ")";
+		TRUE() : "true";
+		FALSE() : "false";
+	}
+}
+
+translateExpr(e : Expr) -> string {
+	switch(e){
+		Arifm(p, opr, q) : "(" + opr + " " + translateExpr(p) + " " + translateExpr(q) + ")";
+		Const(v) : i2s(v);
+		Var(v) : v;
+		default : "";
+	}
+}
+
+
+main(){
+	str = getFileContent("spec.txt");
+	trio = s2t(str);
+	map(translateDefs(trio), println);
+	map(map(generateVC(trio), \f -> "(assert " + translateFormul(Not(f)) + ")"), println);
+	println("(check-sat)");
+	quit(0);
+}
