@@ -31,7 +31,7 @@ recalc(e : Expr, v : Var, expr : Expr) -> Expr {
 		Arifm(p, op, q) : Arifm(recalc(p, v, expr), op, recalc(q, v, expr));
 		APP(arr, ind) : APP(arr, recalc(ind, v, expr));
 		UPD(arr, ind, val) : UPD(arr, recalc(ind, v, expr), recalc(val, v, expr));
-		Var(w) : if (v == e) v else e; 
+		Var(w) : if (v == e) v else expr; 
 		default : e;
 	}
 }
@@ -70,10 +70,11 @@ getPost(t : HoareTrio) -> [Formula] {
 }
 
 main(){
-	str = getFileContent("spec.txt");
+	str = getFileContent("nemo.txt");
 	trio = s2t(str);
 	fi = getPred(trio);
 	bodys = getBody(trio);
 	psi = getPost(trio);
 	map(map(bodys, \b -> VC(fi, b, psi)), \i -> map(i, println));
+	quit(0);
 }
